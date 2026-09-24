@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Exec(php artisan)",
+      "Exec(\"C:\\Program Files\\nodejs\\npm.cmd\" run)"
+    ]
+  }
+}
