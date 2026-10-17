@@ -1,0 +1,423 @@
+# 🗄️ DOCUMENTACIÓN COMPLETA DE BASE DE DATOS - SISTEMA DE GIMNASIO
+
+## 📋 ESTRUCTURA GENERAL
+
+**Sistema de Gestión de Base de Datos:** SQLite (desarrollo) / MySQL (producción)
+**Total de tablas:** 10 tablas principales
+**Relaciones:** 1:1, 1:N, N:M
+
+---
+
+## 📊 TABLAS Y CAMPOS DETALLADOS
+
+### 1. USERS (Usuarios del sistema)
+**Propósito:** Almacenar información de autenticación y roles
+
+| Campo | Tipo | Descripción | Restricciones |
+|-------|------|-------------|---------------|
+| id | BIGINT (PK) | Identificador único | AUTO_INCREMENT |
+| name | VARCHAR(255) | Nombre completo del usuario | NOT NULL |
+| email | VARCHAR(255) | Email del usuario | UNIQUE, NOT NULL |
+| email_verified_at | TIMESTAMP | Fecha de verificación de email | NULLABLE |
+| password | VARCHAR(255) | Contraseña encriptada | NOT NULL |
+| role | ENUM('admin','trainer','client') | Rol del usuario | DEFAULT 'client' |
+| remember_token | VARCHAR(100) | Token para recordar sesión | NULLABLE |
+| created_at | TIMESTAMP | Fecha de creación | Automático |
+| updated_at | TIMESTAMP | Fecha de actualización | Automático |
+
+**Relaciones:**
+- HasOne: Client (para usuarios con rol 'client')
+- HasMany: Routine (como trainer para usuarios con rol 'trainer')
+
+**Índices:**
+- PRIMARY: id
+- UNIQUE: email
+
+---
+
+### 2. CLIENTS (Información adicional de clientes)
+**Propósito:** Almacenar datos específicos de los clientes del gimnasio
+
+| Campo | Tipo | Descripción | Restricciones |
+|-------|------|-------------|---------------|
+| id | BIGINT (PK) | Identificador único | AUTO_INCREMENT |
+| user_id | BIGINT (FK) | ID del usuario relacionado | FOREIGN KEY -> users(id), ON DELETE CASCADE |
+| phone | VARCHAR(20) | Teléfono del cliente | NULLABLE |
+| address | VARCHAR(255) | Dirección del cliente | NULLABLE |
+| birth_date | DATE | Fecha de nacimiento | NULLABLE |
+| registration_date | DATE | Fecha de registro | DEFAULT CURRENT_DATE |
+| active | BOOLEAN | Estado del cliente | DEFAULT TRUE |
+| created_at | TIMESTAMP | Fecha de creación | Automático |
+| updated_at | TIMESTAMP | Fecha de actualización | Automático |
+
+**Relaciones:**
+- BelongsTo: User
+- HasMany: ClientPlan, Payment, Routine, Attendance
+
+**Índices:**
+- PRIMARY: id
+- FOREIGN: user_id
+- INDEX: active
+
+---
+
+### 3. PLANS (Planes de suscripción)
+**Propósito:** Definir los diferentes planes de pago del gimnasio
+
+| Campo | Tipo | Descripción | Restricciones |
+|-------|------|-------------|---------------|
+| id | BIGINT (PK) | Identificador único | AUTO_INCREMENT |
+| name | VARCHAR(255) | Nombre del plan | NOT NULL |
+| description | TEXT | Descripción del plan | NULLABLE |
+| price | DECIMAL(10,2) | Precio mensual del plan | NOT NULL |
+| weekly_sessions | INT | Sesiones permitidas por semana | DEFAULT 0 |
+| monthly_sessions | INT | Sesiones permitidas por mes | DEFAULT 0 |
+| active | BOOLEAN | Estado del plan | DEFAULT TRUE |
+| created_at | TIMESTAMP | Fecha de creación | Automático |
+| updated_at | TIMESTAMP | Fecha de actualización | Automático |
+
+**Relaciones:**
+- HasMany: ClientPlan
+
+**Índices:**
+- PRIMARY: id
+- INDEX: active
+
+---
+
+### 4. CLIENT_PLANS (Asignación de planes a clientes)
+**Propósito:** Relacionar clientes con sus planes de suscripción
+
+| Campo | Tipo | Descripción | Restricciones |
+|-------|------|-------------|---------------|
+| id | BIGINT (PK) | Identificador único | AUTO_INCREMENT |
+| client_id | BIGINT (FK) | ID del cliente | FOREIGN KEY -> clients(id), ON DELETE CASCADE |
+| plan_id | BIGINT (FK) | ID del plan | FOREIGN KEY -> plans(id), ON DELETE CASCADE |
+| start_date | DATE | Fecha de inicio del plan | NOT NULL |
+| end_date | DATE | Fecha de fin del plan | NULLABLE |
+| active | BOOLEAN | Estado de la asignación | DEFAULT TRUE |
+| created_at | TIMESTAMP | Fecha de creación | Automático |
+| updated_at | TIMESTAMP | Fecha de actualización | Automático |
+
+**Relaciones:**
+- BelongsTo: Client
+- BelongsTo: Plan
+
+**Índices:**
+- PRIMARY: id
+- FOREIGN: client_id
+- FOREIGN: plan_id
+- INDEX: active
+
+---
+
+### 5. PAYMENTS (Registro de pagos)
+**Propósito:** Almacenar el historial de pagos de los clientes
+
+| Campo | Tipo | Descripción | Restricciones |
+|-------|------|-------------|---------------|
+| id | BIGINT (PK) | Identificador único | AUTO_INCREMENT |
+| client_id | BIGINT (FK) | ID del cliente | FOREIGN KEY -> clients(id), ON DELETE CASCADE |
+| amount | DECIMAL(10,2) | Monto del pago | NOT NULL |
+| payment_date | DATE | Fecha del pago | DEFAULT CURRENT_DATE |
+| payment_method | VARCHAR(50) | Método de pago | DEFAULT 'cash' |
+| reference | VARCHAR(100) | Referencia del pago | NULLABLE |
+| notes | TEXT | Notas adicionales | NULLABLE |
+| created_at | TIMESTAMP | Fecha de creación | Automático |
+| updated_at | TIMESTAMP | Fecha de actualización | Automático |
+
+**Relaciones:**
+- BelongsTo: Client
+
+**Índices:**
+- PRIMARY: id
+- FOREIGN: client_id
+- INDEX: payment_date
+
+---
+
+### 6. EXERCISES (Catálogo de ejercicios)
+**Propósito:** Almacenar el catálogo de ejercicios disponibles
+
+| Campo | Tipo | Descripción | Restricciones |
+|-------|------|-------------|---------------|
+| id | BIGINT (PK) | Identificador único | AUTO_INCREMENT |
+| name | VARCHAR(255) | Nombre del ejercicio | NOT NULL |
+| description | TEXT | Descripción del ejercicio | NULLABLE |
+| muscle_group | VARCHAR(100) | Grupo muscular principal | NULLABLE |
+| equipment | VARCHAR(100) | Equipamiento necesario | NULLABLE |
+| instructions | TEXT | Instrucciones de ejecución | NULLABLE |
+| created_at | TIMESTAMP | Fecha de creación | Automático |
+| updated_at | TIMESTAMP | Fecha de actualización | Automático |
+
+**Relaciones:**
+- HasMany: RoutineExercise
+
+**Índices:**
+- PRIMARY: id
+- INDEX: muscle_group
+
+---
+
+### 7. ROUTINES (Rutinas de entrenamiento)
+**Propósito:** Almacenar las rutinas asignadas a los clientes
+
+| Campo | Tipo | Descripción | Restricciones |
+|-------|------|-------------|---------------|
+| id | BIGINT (PK) | Identificador único | AUTO_INCREMENT |
+| trainer_id | BIGINT (FK) | ID del trainer que creó la rutina | FOREIGN KEY -> users(id), ON DELETE CASCADE |
+| client_id | BIGINT (FK) | ID del cliente asignado | FOREIGN KEY -> clients(id), ON DELETE CASCADE |
+| name | VARCHAR(255) | Nombre de la rutina | NOT NULL |
+| description | TEXT | Descripción de la rutina | NULLABLE |
+| start_date | DATE | Fecha de inicio | DEFAULT CURRENT_DATE |
+| end_date | DATE | Fecha de fin | NULLABLE |
+| active | BOOLEAN | Estado de la rutina | DEFAULT TRUE |
+| created_at | TIMESTAMP | Fecha de creación | Automático |
+| updated_at | TIMESTAMP | Fecha de actualización | Automático |
+
+**Relaciones:**
+- BelongsTo: User (como trainer)
+- BelongsTo: Client
+- HasMany: RoutineExercise
+
+**Índices:**
+- PRIMARY: id
+- FOREIGN: trainer_id
+- FOREIGN: client_id
+- INDEX: active
+
+---
+
+### 8. ROUTINE_EXERCISES (Ejercicios en cada rutina)
+**Propósito:** Detallar los ejercicios específicos de cada rutina
+
+| Campo | Tipo | Descripción | Restricciones |
+|-------|------|-------------|---------------|
+| id | BIGINT (PK) | Identificador único | AUTO_INCREMENT |
+| routine_id | BIGINT (FK) | ID de la rutina | FOREIGN KEY -> routines(id), ON DELETE CASCADE |
+| exercise_id | BIGINT (FK) | ID del ejercicio | FOREIGN KEY -> exercises(id), ON DELETE CASCADE |
+| sets | INT | Número de series | DEFAULT 3 |
+| reps | INT | Número de repeticiones | DEFAULT 10 |
+| weight | VARCHAR(50) | Peso a usar | NULLABLE |
+| notes | TEXT | Notas adicionales | NULLABLE |
+| order | INT | Orden en la rutina | DEFAULT 0 |
+| created_at | TIMESTAMP | Fecha de creación | Automático |
+| updated_at | TIMESTAMP | Fecha de actualización | Automático |
+
+**Relaciones:**
+- BelongsTo: Routine
+- BelongsTo: Exercise
+
+**Índices:**
+- PRIMARY: id
+- FOREIGN: routine_id
+- FOREIGN: exercise_id
+- INDEX: order
+
+---
+
+### 9. SCHEDULES (Horarios disponibles)
+**Propósito:** Definir los horarios de apertura del gimnasio
+
+| Campo | Tipo | Descripción | Restricciones |
+|-------|------|-------------|---------------|
+| id | BIGINT (PK) | Identificador único | AUTO_INCREMENT |
+| day_of_week | VARCHAR(20) | Día de la semana | NOT NULL |
+| start_time | TIME | Hora de inicio | NOT NULL |
+| end_time | TIME | Hora de fin | NOT NULL |
+| max_capacity | INT | Capacidad máxima | DEFAULT 20 |
+| active | BOOLEAN | Estado del horario | DEFAULT TRUE |
+| created_at | TIMESTAMP | Fecha de creación | Automático |
+| updated_at | TIMESTAMP | Fecha de actualización | Automático |
+
+**Relaciones:**
+- HasMany: Attendance
+
+**Índices:**
+- PRIMARY: id
+- INDEX: day_of_week
+- INDEX: active
+
+---
+
+### 10. ATTENDANCE (Registro de asistencia)
+**Propósito:** Registrar la asistencia de los clientes a las sesiones
+
+| Campo | Tipo | Descripción | Restricciones |
+|-------|------|-------------|---------------|
+| id | BIGINT (PK) | Identificador único | AUTO_INCREMENT |
+| client_id | BIGINT (FK) | ID del cliente | FOREIGN KEY -> clients(id), ON DELETE CASCADE |
+| schedule_id | BIGINT (FK) | ID del horario | FOREIGN KEY -> schedules(id), ON DELETE CASCADE |
+| attendance_date | DATE | Fecha de asistencia | DEFAULT CURRENT_DATE |
+| check_in_time | TIME | Hora de entrada | NULLABLE |
+| check_out_time | TIME | Hora de salida | NULLABLE |
+| status | VARCHAR(20) | Estado de asistencia | DEFAULT 'present' |
+| notes | TEXT | Notas adicionales | NULLABLE |
+| created_at | TIMESTAMP | Fecha de creación | Automático |
+| updated_at | TIMESTAMP | Fecha de actualización | Automático |
+
+**Relaciones:**
+- BelongsTo: Client
+- BelongsTo: Schedule
+
+**Índices:**
+- PRIMARY: id
+- FOREIGN: client_id
+- FOREIGN: schedule_id
+- INDEX: attendance_date
+- INDEX: status
+
+---
+
+### 11. PERSONAL_ACCESS_TOKENS (Tokens de autenticación)
+**Propósito:** Gestión de tokens para Laravel Sanctum
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| id | BIGINT (PK) | Identificador único |
+| tokenable_type | VARCHAR(255) | Tipo de modelo relacionado |
+| tokenable_id | BIGINT | ID del modelo relacionado |
+| name | VARCHAR(255) | Nombre del token |
+| token | VARCHAR(64) | Token de acceso |
+| abilities | TEXT | Permisos del token |
+| last_used_at | TIMESTAMP | Última vez usado |
+| expires_at | TIMESTAMP | Fecha de expiración |
+| created_at | TIMESTAMP | Fecha de creación |
+| updated_at | TIMESTAMP | Fecha de actualización |
+
+---
+
+## 🔗 DIAGRAMA DE RELACIONES
+
+```
+users (1) ----< (1) clients
+users (1) ----< (N) routines (como trainer)
+
+clients (1) ----< (N) client_plans
+plans (1) ----< (N) client_plans
+
+clients (1) ----< (N) payments
+
+clients (1) ----< (N) routines
+users (1) ----< (N) routines (como trainer)
+
+routines (1) ----< (N) routine_exercises
+exercises (1) ----< (N) routine_exercises
+
+schedules (1) ----< (N) attendance
+clients (1) ----< (N) attendance
+```
+
+---
+
+## 📝 REGLAS DE INTEGRIDAD
+
+### FOREIGN KEYS
+- **ON DELETE CASCADE:** Cuando se elimina un registro padre, se eliminan automáticamente los registros hijos
+- **NOT NULL:** Campos obligatorios que no pueden ser nulos
+- **UNIQUE:** Campos que deben tener valores únicos
+
+### VALIDACIONES DE NEGOCIO
+- **Role:** Solo puede ser 'admin', 'trainer', o 'client'
+- **Status de attendance:** Solo puede ser 'present', 'absent', o 'late'
+- **Payment method:** Valores comunes: 'cash', 'card', 'transfer'
+- **Active:** Campos booleanos para controlar estado de registros
+
+---
+
+## 🎯 DATOS DE PRUEBA CREADOS
+
+### USERS (3 registros)
+- admin@gimnasio.com (Admin)
+- trainer@gimnasio.com (Trainer)
+- cliente@gimnasio.com (Cliente)
+
+### CLIENTS (3 registros adicionales)
+- Juan Pérez
+- María García
+- Carlos López
+
+### PLANS (3 registros)
+- Plan Básico ($30.00)
+- Plan Estándar ($50.00)
+- Plan Premium ($80.00)
+
+### EXERCISES (6 registros)
+- Press de Banca
+- Sentadilla
+- Dominadas
+- Press Militar
+- Curl de Bíceps
+- Extensiones de Tríceps
+
+### CLIENT_PLANS (3 asignaciones)
+- Cada cliente asignado a un plan diferente rotativamente
+
+### PAYMENTS (3 registros)
+- Un pago por cliente según su plan asignado
+
+---
+
+## 🔄 MIGRACIONES Y SEEDERS
+
+### EJECUTAR MIGRACIONES
+```bash
+php artisan migrate
+```
+
+### EJECUTAR SEEDERS
+```bash
+php artisan db:seed
+# O específicamente:
+php artisan db:seed --class=UserSeeder
+php artisan db:seed --class=GymDataSeeder
+```
+
+### REINICIAR BASE DE DATOS COMPLETA
+```bash
+php artisan migrate:fresh --seed
+```
+
+---
+
+## 🚀 CONFIGURACIÓN PARA PRODUCCIÓN (MYSQL)
+
+### ARCHIVO .ENV
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=gimnasio
+DB_USERNAME=tu_usuario
+DB_PASSWORD=tu_password
+```
+
+### COMANDOS PARA MYSQL
+```sql
+CREATE DATABASE gimnasio CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+---
+
+## 📊 ESTADÍSTICAS DE LA BASE DE DATOS
+
+- **Total de tablas:** 11
+- **Total de campos:** ~80
+- **Relaciones:** 10 foreign keys
+- **Índices:** ~15
+- **Datos de prueba:** ~20 registros
+
+---
+
+## ⚠️ NOTAS IMPORTANTES
+
+1. **CLAVES FORÁNEAS:** Todas las relaciones están configuradas con CASCADE para mantener la integridad referencial
+2. **TIMESTAMPS:** Laravel gestiona automáticamente created_at y updated_at
+3. **SOFT DELETES:** No implementado actualmente, se usa eliminación física
+4. **ENCRIPTACIÓN:** Las contraseñas se encriptan automáticamente con Laravel
+5. **TOKENS:** Laravel Sanctum gestiona los tokens de autenticación
+
+---
+
+**Última actualización:** 8 de agosto de 2026
+**Estado:** Base de datos completamente funcional con datos de prueba

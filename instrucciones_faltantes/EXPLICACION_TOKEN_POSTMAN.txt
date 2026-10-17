@@ -1,0 +1,149 @@
+# 🎯 GUÍA SIMPLIFICADA: CÓMO FUNCIONA EL TOKEN EN POSTMAN
+
+## 🤔 ¿QUÉ ES EL TOKEN Y PARA QUÉ SIRVE?
+
+Imagina que el token es como una **"tarjeta de acceso"** o **"llave digital**:
+
+- Cuando te logueas en el sistema, el servidor te da una "tarjeta" (token)
+- Cada vez que quieras acceder a algo, muestras tu tarjeta
+- Si la tarjeta es válida, el servidor te deja pasar
+- Si no tienes tarjeta o está vencida, el servidor te dice "no puedes entrar"
+
+## 📋 PASO A PASO (MUY SENCILLO)
+
+### PASO 1: Obtener tu tarjeta (TOKEN)
+
+**En Postman:**
+1. Crea una nueva petición POST
+2. URL: `http://127.0.0.1:8000/api/login`
+3. En la pestaña "Body", selecciona "raw" y "JSON"
+4. Pega esto:
+```json
+{
+  "email": "admin@gimnasio.com",
+  "password": "password"
+}
+```
+5. Dale clic en "Send"
+
+**Lo que recibes:**
+```json
+{
+  "user": {
+    "id": 1,
+    "name": "Admin",
+    "email": "admin@gimnasio.com",
+    "role": "admin"
+  },
+  "token": "1|aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdefghijklmnopqrstuvwxyz"
+}
+```
+
+**¡IMPORTANTE!** 📌
+- Copia SOLO la parte después de `"token": "` 
+- En el ejemplo sería: `1|aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdefghijklmnopqrstuvwxyz`
+- NO copies las comillas ni la palabra "token"
+
+### PASO 2: Usar tu tarjeta en otras peticiones
+
+**En Postman:**
+1. Crea una nueva petición (por ejemplo: GET)
+2. URL: `http://127.0.0.1:8000/api/clients`
+3. Ve a la pestaña "Headers"
+4. Agrega un nuevo header:
+   - **Key**: `Authorization`
+   - **Value**: `Bearer 1|aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdefghijklmnopqrstuvwxyz`
+5. Dale clic en "Send"
+
+**NOTA IMPORTANTE:** ⚠️
+- El valor SIEMPRE empieza con la palabra `Bearer` seguida de un espacio
+- Después del espacio va tu token copiado
+- Quedaría así: `Bearer 1|aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdefghijklmnopqrstuvwxyz`
+
+### PASO 3: Guardar el token para no copiarlo siempre
+
+**En Postman:**
+1. Ve a la esquina superior derecha
+2. Haz clic en el icono de "ojo" (Manage Environments)
+3. Crea un nuevo entorno llamado "Gimnasio"
+4. Agrega una variable:
+   - **Variable name**: `token`
+   - **Variable value**: `1|aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890abcdefghijklmnopqrstuvwxyz`
+5. Guarda el entorno
+6. Selecciona el entorno "Gimnasio" en la lista desplegable
+
+**Ahora en tus peticiones:**
+- En el header Authorization, pon: `Bearer {{token}}`
+- Postman reemplazará `{{token}}` con tu token automáticamente
+
+## 🔍 ERRORES COMUNES Y CÓMO SOLUCIONARLOS
+
+### ERROR 401 Unauthorized
+**Causa:** No enviaste el token o el token es incorrecto
+**Solución:** 
+- Verifica que el header `Authorization` esté presente
+- Verifica que el valor sea `Bearer {{token}}` (con Bearer y espacio)
+- Verifica que el token sea correcto (vuelve a hacer login)
+
+### ERROR 403 Forbidden
+**Causa:** Tu usuario no tiene permiso para esa acción
+**Solución:**
+- Si eres admin: puedes acceder a todo
+- Si eres trainer: solo puedes acceder a rutinas y clientes
+- Si eres client: solo puedes acceder a tu información
+
+### ERROR 404 Not Found
+**Causa:** La URL no existe o el ID no es válido
+**Solución:**
+- Verifica que la URL sea correcta
+- Verifica que el ID del recurso exista
+
+## 🎯 EJEMPLOS PRÁCTICOS
+
+### Ejemplo 1: Listar clientes (solo admin)
+```
+GET http://127.0.0.1:8000/api/clients
+Header: Authorization: Bearer {{token}}
+```
+
+### Ejemplo 2: Crear un cliente (solo admin)
+```
+POST http://127.0.0.1:8000/api/clients
+Header: Authorization: Bearer {{token}}
+Body: {
+  "name": "Juan Pérez",
+  "email": "juan@gmail.com",
+  "password": "password123",
+  "phone": "123456789"
+}
+```
+
+### Ejemplo 3: Ver mis rutinas (solo client)
+```
+GET http://127.0.0.1:8000/api/my-routines
+Header: Authorization: Bearer {{token}}
+```
+
+## 💡 TRUCOS ÚTILES
+
+1. **El token expira:** Si dejas de usarlo por mucho tiempo, vuelve a hacer login
+2. **Diferentes usuarios, diferentes tokens:** Si te logueas como admin y luego como client, tendrás tokens diferentes
+3. **Guarda tus entornos:** Puedes tener un entorno para admin, otro para trainer, etc.
+
+## 📝 RESUMEN EN 3 PASOS
+
+1. **LOGUEATE:** POST /api/login → Copia el token
+2. **CONFIGURA:** Agrega header `Authorization: Bearer {{token}}`
+3. **USA:** Haz peticiones a cualquier endpoint protegido
+
+---
+
+## 🚀 ¿LISTO PARA EMPEZAR?
+
+1. Abre Postman
+2. Haz login con admin@gimnasio.com / password
+3. Copia el token
+4. Configura el header Authorization
+5. ¡Empieza a probar la API!
+
+**¿Dudas?** Revisa el archivo POSTMAN_GUIDE.txt para más detalles de cada endpoint.

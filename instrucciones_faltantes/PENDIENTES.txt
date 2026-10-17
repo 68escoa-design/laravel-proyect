@@ -1,0 +1,131 @@
+PENDIENTES - Sistema de Gestión de Gimnasio
+=============================================
+
+✅ LO QUE YA ESTÁ IMPLEMENTADO:
+- Sistema de autenticación básico con Laravel Sanctum
+- Roles de usuario (admin, trainer, client)
+- API RESTful básica para gestión de usuarios
+- Middleware de verificación de roles
+- Seeder con usuarios de prueba
+- Migraciones de base de datos con roles
+
+❌ LO QUE FALTA IMPLEMENTAR:
+
+1. MÓDULO DE CLIENTES (ADMIN)
+   - Migración para tabla clients con campos específicos (fecha_nacimiento, telefono, direccion, etc.)
+   - API CRUD completa para clientes
+   - Gestión de planes y suscripciones
+   - Historial de pagos
+   - Generación de comprobantes digitales
+
+2. MÓDULO DE COBROS Y CUENTAS CORRIENTES (ADMIN)
+   - Migración para tabla payments
+   - Migración para tabla plans
+   - API para registrar pagos
+   - API para consultar estado de cuenta
+   - Cálculo de saldos pendientes
+   - Sistema de vencimientos
+
+3. MÓDULO DE RUTINAS (TRAINER)
+   - Migración para tabla routines
+   - Migración para tabla exercises
+   - API para crear/modificar rutinas
+   - API para asignar rutinas a clientes
+   - Vista de rutinas por cliente
+
+4. MÓDULO DE TURNOS/ASISTENCIAS
+   - Migración para tabla attendance
+   - Migración para tabla schedules
+   - Sistema de control de turnos según plan
+   - API para registrar asistencia
+   - API para consultar turnos disponibles
+   - Validación de límites de turnos según plan
+
+5. MÓDULO DE CLIENTE (CLIENTE)
+   - API para consultar estado de cuenta personal
+   - API para ver rutinas asignadas
+   - API para ver turnos disponibles/consumidos
+   - Panel personal con información relevante
+
+6. FRONTEND VUE.JS
+   - Instalación de Vue.js
+   - Configuración de rutas Vue Router
+   - Configuración de gestión de estado (Pinia/Vuex)
+   - Componentes de login/autenticación
+   - Dashboard para admin
+   - Panel para trainer
+   - Panel para cliente
+   - Integración con API Laravel
+
+7. CONFIGURACIÓN ADICIONAL
+   - Configuración CORS para API
+   - Validaciones de formularios
+   - Manejo de errores
+   - Sistema de permisos granular
+   - Documentación de API (Swagger/OpenAPI)
+
+🔧 LO QUE NECESITAS HACER PARA QUE FUNCIONE:
+
+1. CONFIGURACIÓN DE BASE DE DATOS
+   ✅ YA CONFIGURADO: Se usa SQLite (no requiere instalación)
+   ✅ El archivo de base de datos está en: database/database.sqlite
+   ✅ El archivo .env ya está configurado con DB_CONNECTION=sqlite
+
+2. EJECUTAR MIGRACIONES Y SEEDERS
+   ✅ YA EJECUTADO: php artisan migrate:fresh --seed (completado exitosamente)
+
+3. INICIAR SERVIDOR DE DESARROLLO
+   php artisan serve
+
+4. LIMPIAR SESIONES (si siempre te loguea como admin)
+   php artisan tinker --execute="DB::table('sessions')->delete();"
+   O usa el comando: php artisan sessions:clear
+
+4. CONFIGURACIÓN FRONTEND (cuando esté listo)
+   - Instalar Node.js si no lo tienes
+   - npm install
+   - npm run dev
+
+📝 DATOS DE PRUEBA CREADOS:
+- Admin: admin@gimnasio.com / password
+- Trainer: trainer@gimnasio.com / password  
+- Cliente: cliente@gimnasio.com / password
+
+🌐 INTERFAZ WEB (FRONTEND TEMPORAL):
+✅ CREADO: Sistema de login con Blade (plantillas de Laravel)
+- URL: http://127.0.0.1:8000
+- Funciona como frontend temporal mientras se implementa Vue.js
+- Muestra dashboard según el rol del usuario
+- Genera y muestra el token de API automáticamente
+
+🧪 PRUEBAS DE API:
+POST /api/login
+{
+  "email": "admin@gimnasio.com",
+  "password": "password"
+}
+
+GET /api/users (solo admin, requiere token)
+GET /api/clients (solo trainer, requiere token)
+GET /api/my-profile (solo cliente, requiere token)
+
+📚 ARCHIVOS CREADOS/MODIFICADOS:
+- database/migrations/0001_01_01_000000_create_users_table.php (agregado campo role)
+- app/Models/User.php (agregado campo role y métodos de verificación)
+- database/seeders/UserSeeder.php (nuevo)
+- database/seeders/DatabaseSeeder.php (modificado)
+- routes/api.php (nuevo)
+- app/Http/Controllers/AuthController.php (nuevo)
+- app/Http/Controllers/UserController.php (nuevo)
+- app/Http/Middleware/CheckRole.php (nuevo)
+- app/Http/Controllers/ViewController.php (nuevo - frontend temporal)
+- bootstrap/app.php (configuración de rutas API y middleware)
+- bootstrap/providers.php (agregado SanctumServiceProvider)
+- composer.json (agregado laravel/sanctum)
+- routes/web.php (modificado - rutas para login y dashboard)
+- resources/views/login.blade.php (nuevo - vista de login)
+- resources/views/dashboard.blade.php (nuevo - vista de dashboard)
+
+NOTA: Esta es una implementación minimalista básica. El sistema
+funciona pero carece de funcionalidades específicas de gimnasio
+que se implementarán en fases posteriores según los requerimientos.

@@ -1,0 +1,382 @@
+# GUÍA PARA POSTMAN - SISTEMA DE GIMNASIO
+
+## CONFIGURACIÓN INICIAL
+
+1. Crear una nueva colección en Postman llamada "Gimnasio API"
+2. Configurar la URL base: http://127.0.0.1:8000/api
+3. Configurar una variable de entorno para el token: `{{token}}`
+
+## AUTENTICACIÓN
+
+### POST /api/login
+**Descripción:** Iniciar sesión y obtener token de autenticación
+
+**Body (JSON):**
+```json
+{
+  "email": "admin@gimnasio.com",
+  "password": "password"
+}
+```
+
+**Usuarios de prueba:**
+- Admin: admin@gimnasio.com / password
+- Trainer: trainer@gimnasio.com / password  
+- Cliente: cliente@gimnasio.com / password
+
+**Respuesta esperada:**
+```json
+{
+  "user": {
+    "id": 1,
+    "name": "Admin",
+    "email": "admin@gimnasio.com",
+    "role": "admin"
+  },
+  "token": "1|aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890"
+}
+```
+
+**IMPORTANTE:** Copia el token y guárdalo en la variable de entorno `{{token}}`
+
+---
+
+## ENDPOINTS PARA ADMIN
+
+### CLIENTES
+
+#### GET /api/clients
+**Headers:** 
+- Authorization: Bearer {{token}}
+
+**Descripción:** Obtener todos los clientes
+
+#### GET /api/clients/{id}
+**Headers:** 
+- Authorization: Bearer {{token}}
+
+**Descripción:** Obtener un cliente específico
+
+#### POST /api/clients
+**Headers:** 
+- Authorization: Bearer {{token}}
+- Content-Type: application/json
+
+**Body (JSON):**
+```json
+{
+  "name": "Juan Pérez",
+  "email": "juan@gmail.com",
+  "password": "password123",
+  "phone": "123456789",
+  "address": "Calle 123",
+  "birth_date": "1990-01-01"
+}
+```
+
+#### PUT /api/clients/{id}
+**Headers:** 
+- Authorization: Bearer {{token}}
+- Content-Type: application/json
+
+**Body (JSON):**
+```json
+{
+  "name": "Juan Pérez Actualizado",
+  "phone": "987654321",
+  "active": true
+}
+```
+
+#### DELETE /api/clients/{id}
+**Headers:** 
+- Authorization: Bearer {{token}}
+
+**Descripción:** Eliminar un cliente
+
+---
+
+### PLANES
+
+#### GET /api/plans
+**Headers:** 
+- Authorization: Bearer {{token}}
+
+**Descripción:** Obtener todos los planes
+
+#### POST /api/plans
+**Headers:** 
+- Authorization: Bearer {{token}}
+- Content-Type: application/json
+
+**Body (JSON):**
+```json
+{
+  "name": "Plan Mensual",
+  "description": "Acceso ilimitado al gimnasio",
+  "price": 50.00,
+  "weekly_sessions": 10,
+  "monthly_sessions": 40
+}
+```
+
+#### PUT /api/plans/{id}
+**Headers:** 
+- Authorization: Bearer {{token}}
+- Content-Type: application/json
+
+**Body (JSON):**
+```json
+{
+  "name": "Plan Mensual Premium",
+  "price": 75.00
+}
+```
+
+#### DELETE /api/plans/{id}
+**Headers:** 
+- Authorization: Bearer {{token}}
+
+---
+
+### PAGOS
+
+#### GET /api/payments
+**Headers:** 
+- Authorization: Bearer {{token}}
+
+**Descripción:** Obtener todos los pagos
+
+#### POST /api/payments
+**Headers:** 
+- Authorization: Bearer {{token}}
+- Content-Type: application/json
+
+**Body (JSON):**
+```json
+{
+  "client_id": 1,
+  "amount": 50.00,
+  "payment_method": "cash",
+  "reference": "REC-001",
+  "notes": "Pago mensual"
+}
+```
+
+#### GET /api/payments/client/{id}/status
+**Headers:** 
+- Authorization: Bearer {{token}}
+
+**Descripción:** Obtener estado de cuenta de un cliente
+
+---
+
+### EJERCICIOS
+
+#### GET /api/exercises
+**Headers:** 
+- Authorization: Bearer {{token}}
+
+**Descripción:** Obtener todos los ejercicios
+
+#### POST /api/exercises
+**Headers:** 
+- Authorization: Bearer {{token}}
+- Content-Type: application/json
+
+**Body (JSON):**
+```json
+{
+  "name": "Press de Banca",
+  "description": "Ejercicio para pecho",
+  "muscle_group": "Pecho",
+  "equipment": "Barra",
+  "instructions": "Acuéstate en el banco, baja la barra hasta el pecho y sube"
+}
+```
+
+---
+
+### HORARIOS
+
+#### GET /api/schedules
+**Headers:** 
+- Authorization: Bearer {{token}}
+
+**Descripción:** Obtener todos los horarios
+
+#### POST /api/schedules
+**Headers:** 
+- Authorization: Bearer {{token}}
+- Content-Type: application/json
+
+**Body (JSON):**
+```json
+{
+  "day_of_week": "Monday",
+  "start_time": "08:00",
+  "end_time": "22:00",
+  "max_capacity": 20
+}
+```
+
+---
+
+### ASISTENCIA
+
+#### GET /api/attendance
+**Headers:** 
+- Authorization: Bearer {{token}}
+
+**Descripción:** Obtener todas las asistencias
+
+#### POST /api/attendance
+**Headers:** 
+- Authorization: Bearer {{token}}
+- Content-Type: application/json
+
+**Body (JSON):**
+```json
+{
+  "client_id": 1,
+  "schedule_id": 1,
+  "status": "present",
+  "notes": "Llegó puntual"
+}
+```
+
+---
+
+## ENDPOINTS PARA TRAINER
+
+### RUTINAS
+
+#### GET /api/routines
+**Headers:** 
+- Authorization: Bearer {{token}}
+
+**Descripción:** Obtener todas las rutinas
+
+#### POST /api/routines
+**Headers:** 
+- Authorization: Bearer {{token}}
+- Content-Type: application/json
+
+**Body (JSON):**
+```json
+{
+  "client_id": 1,
+  "name": "Rutina de Fuerza",
+  "description": "Rutina para ganar masa muscular",
+  "start_date": "2026-08-01",
+  "exercises": [
+    {
+      "exercise_id": 1,
+      "sets": 4,
+      "reps": 10,
+      "weight": "80kg",
+      "notes": "Descanso 90s"
+    },
+    {
+      "exercise_id": 2,
+      "sets": 3,
+      "reps": 12,
+      "weight": "60kg"
+    }
+  ]
+}
+```
+
+#### GET /api/routines/client/{id}
+**Headers:** 
+- Authorization: Bearer {{token}}
+
+**Descripción:** Obtener rutinas de un cliente específico
+
+---
+
+## ENDPOINTS PARA CLIENTE
+
+### MI PERFIL
+
+#### GET /api/my-profile
+**Headers:** 
+- Authorization: Bearer {{token}}
+
+**Descripción:** Obtener mi perfil
+
+### MI ESTADO DE CUENTA
+
+#### GET /api/my-account-status
+**Headers:** 
+- Authorization: Bearer {{token}}
+
+**Descripción:** Obtener estado de mi cuenta
+
+### MIS RUTINAS
+
+#### GET /api/my-routines
+**Headers:** 
+- Authorization: Bearer {{token}}
+
+**Descripción:** Obtener mis rutinas asignadas
+
+### MI ASISTENCIA
+
+#### GET /api/my-attendance
+**Headers:** 
+- Authorization: Bearer {{token}}
+
+**Descripción:** Obtener mi historial de asistencia
+
+---
+
+## ESTRUCTURA DE LA BASE DE DATOS
+
+### Tablas principales:
+- users (usuarios del sistema)
+- clients (información adicional de clientes)
+- plans (planes de suscripción)
+- client_plans (asignación de planes a clientes)
+- payments (pagos realizados)
+- exercises (catálogo de ejercicios)
+- routines (rutinas asignadas)
+- routine_exercises (ejercicios en cada rutina)
+- schedules (horarios disponibles)
+- attendance (registro de asistencia)
+
+---
+
+## NOTAS IMPORTANTES
+
+1. **AUTENTICACIÓN:** Todos los endpoints (excepto /login) requieren el token en el header:
+   ```
+   Authorization: Bearer {{token}}
+   ```
+
+2. **ROLES:** El sistema verifica roles automáticamente:
+   - Admin: acceso total
+   - Trainer: acceso a rutinas y clientes
+   - Cliente: acceso solo a su información
+
+3. **ERRORES COMUNES:**
+   - 401: Token inválido o expirado
+   - 403: No tienes permiso para este endpoint
+   - 404: Recurso no encontrado
+   - 422: Error de validación en los datos
+
+4. **BASE DE DATOS:** Actualmente usa SQLite. Para producción usar MySQL:
+   - Cambiar DB_CONNECTION=mysql en .env
+   - Configurar DB_DATABASE, DB_USERNAME, DB_PASSWORD
+   - Ejecutar migraciones: php artisan migrate
+
+---
+
+## DATOS DE PRUEBA DISPONIBLES
+
+### Usuarios:
+- Admin: admin@gimnasio.com / password
+- Trainer: trainer@gimnasio.com / password
+- Cliente: cliente@gimnasio.com / password
+
+### Nota: Primero necesitas crear clientes, planes y ejercicios para poder probar completamente el sistema.
